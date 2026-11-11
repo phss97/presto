@@ -58,9 +58,8 @@ public struct LanguagePickerView: View {
         VStack(spacing: 0) {
             // Selected text preview bar
             HStack(spacing: 8) {
-                Image(systemName: "text.quote")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+                GlossTemplateMarkView(size: 13)
+                    .opacity(0.68)
 
                 Text(snippetPreview)
                     .font(.system(size: 11.5))

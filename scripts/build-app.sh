@@ -13,6 +13,8 @@ RESOURCES_DIR="${CONTENTS_DIR}/Resources"
 
 BUNDLE_MODEL=0
 CUSTOM_MODEL_FILE=""
+INSTALL_APP=0
+INSTALL_DIR="/Applications"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,9 +26,17 @@ while [[ $# -gt 0 ]]; do
       fi
       shift
       ;;
+    --install)
+      INSTALL_APP=1
+      if [[ -n "${2:-}" && "${2:0:1}" != "-" ]]; then
+        INSTALL_DIR="$2"
+        shift
+      fi
+      shift
+      ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--bundle-model [path/to/model.gguf]]" >&2
+      echo "Usage: $0 [--bundle-model [path/to/model.gguf]] [--install [/Applications]]" >&2
       exit 1
       ;;
   esac
@@ -68,6 +78,14 @@ fi
 
 cp -R "${LLAMA_FRAMEWORK_SRC}" "${FRAMEWORKS_DIR}/llama.framework"
 
+echo "Generating AppIcon.icns..."
+mkdir -p "${ROOT_DIR}/.build"
+swiftc -parse-as-library \
+  "${ROOT_DIR}/Sources/Gloss/UI/GlossBrandIcon.swift" \
+  "${ROOT_DIR}/scripts/generate-icon.swift" \
+  -o "${ROOT_DIR}/.build/generate-icon"
+"${ROOT_DIR}/.build/generate-icon" "${RESOURCES_DIR}/AppIcon.icns"
+
 if [[ "${BUNDLE_MODEL}" -eq 1 ]]; then
   mkdir -p "${RESOURCES_DIR}/Models"
   DEFAULT_MODEL_NAME="qwen2.5-1.5b-instruct-q4_k_m.gguf"
@@ -103,6 +121,10 @@ cat > "${CONTENTS_DIR}/Info.plist" <<EOF
     <string>${APP_NAME}</string>
     <key>CFBundleExecutable</key>
     <string>${APP_NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -130,5 +152,18 @@ EOF
 echo "Signing ${APP_BUNDLE}..."
 codesign --force --sign - "${FRAMEWORKS_DIR}/llama.framework"
 codesign --force --deep --sign - "${APP_BUNDLE}"
+touch "${APP_BUNDLE}"
 
 echo "Built and signed: ${APP_BUNDLE}"
+
+if [[ "${INSTALL_APP}" -eq 1 ]]; then
+  INSTALLED_BUNDLE="${INSTALL_DIR}/${APP_NAME}.app"
+  echo "Installing to ${INSTALLED_BUNDLE}..."
+  pkill -f "${APP_NAME}.app/Contents/MacOS/${APP_NAME}" 2>/dev/null || true
+  sleep 0.3
+  rm -rf "${INSTALLED_BUNDLE}"
+  ditto "${APP_BUNDLE}" "${INSTALLED_BUNDLE}"
+  touch "${INSTALLED_BUNDLE}"
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "${INSTALLED_BUNDLE}" 2>/dev/null || true
+  echo "Installed: ${INSTALLED_BUNDLE}"
+fi

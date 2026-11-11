@@ -5,6 +5,9 @@ import SwiftUI
 public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        if let bundledIcon = NSImage(named: "AppIcon") {
+            NSApp.applicationIconImage = bundledIcon
+        }
 
         let coordinator = TranslationCoordinator.shared
         let panelController = FloatingPanelController.shared
@@ -59,8 +62,11 @@ public struct GlossApp: App {
     public init() {}
 
     public var body: some Scene {
-        MenuBarExtra("Gloss", systemImage: "character.bubble") {
+        MenuBarExtra {
             MenuBarContentView()
+        } label: {
+            Image(nsImage: GlossBrandIcon.menuBarTemplateImage())
+                .accessibilityLabel("Gloss")
         }
         .menuBarExtraStyle(.window)
 

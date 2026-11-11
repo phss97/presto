@@ -11,8 +11,9 @@ public struct MenuBarContentView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label("Gloss", systemImage: "character.bubble.fill")
+            HStack(spacing: 8) {
+                GlossAppIconView(size: 20, includeMacOSCanvasPadding: false)
+                Text("Gloss")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Text(preferences.enginePreference.shortTitle)

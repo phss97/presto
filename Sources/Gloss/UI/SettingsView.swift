@@ -12,6 +12,26 @@ public struct SettingsView: View {
 
     public var body: some View {
         Form {
+            Section {
+                HStack(spacing: 14) {
+                    GlossAppIconView(size: 48, includeMacOSCanvasPadding: false)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text("Gloss")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("1.0")
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundStyle(.tertiary)
+                        }
+                        Text("On-device macOS translation · Zero cloud calls")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 4)
+            }
+
             Section("Shortcuts & Language") {
                 Picker("Default Target Language", selection: $preferences.defaultLanguageCode) {
                     ForEach(Language.catalog) { language in
@@ -135,7 +155,7 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 430)
+        .frame(width: 520, height: 495)
         .onAppear {
             permissions.refresh()
             modelManager.refreshState()

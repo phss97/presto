@@ -44,9 +44,8 @@ public struct TranslationHUDView: View {
     private var leadingIndicator: some View {
         switch coordinator.hudStatus {
         case .idle:
-            Image(systemName: "character.bubble")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.secondary)
+            GlossTemplateMarkView(size: 15)
+                .opacity(0.75)
         case .downloadingModel(let progress, _):
             ProgressView(value: progress)
                 .progressViewStyle(.circular)
