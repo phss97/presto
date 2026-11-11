@@ -26,6 +26,9 @@ public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
         coordinator.onHideLanguagePicker = {
             panelController.hidePicker()
         }
+        coordinator.onAccessibilityMissing = {
+            SettingsWindowController.shared.show()
+        }
 
         hotkeys.onQuickTranslate = {
             coordinator.triggerQuickTranslate()
@@ -48,6 +51,33 @@ public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
         )
 
         PermissionsManager.shared.refresh()
+        enableLaunchAtLoginOnFirstRun()
+
+        // Opened by the user (Finder, Spotlight, Dock): show settings.
+        // Started at login: stay in the background unless setup is incomplete.
+        let launchedAtLogin = LoginItemManager.wasLaunchedAsLoginItem()
+        if !launchedAtLogin || !PermissionsManager.shared.isAccessibilityGranted {
+            SettingsWindowController.shared.show()
+        }
+    }
+
+    /// Opening Gloss again while it is already running in the background.
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        SettingsWindowController.shared.show()
+        return false
+    }
+
+    public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    private func enableLaunchAtLoginOnFirstRun() {
+        let preferences = AppPreferences.shared
+        // Only register the installed copy, never a build run from dist/ or .build/.
+        guard !preferences.didOfferLaunchAtLogin,
+              Bundle.main.bundlePath.hasPrefix("/Applications/") else { return }
+        preferences.didOfferLaunchAtLogin = true
+        LoginItemManager.shared.setEnabled(true)
     }
 
     public func applicationWillTerminate(_ notification: Notification) {
@@ -58,20 +88,25 @@ public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
 @main
 public struct GlossApp: App {
     @NSApplicationDelegateAdaptor(GlossAppDelegate.self) private var appDelegate
+    @Bindable private var preferences = AppPreferences.shared
 
     public init() {}
 
     public var body: some Scene {
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $preferences.showMenuBarIcon) {
             MenuBarContentView()
         } label: {
             Image(nsImage: GlossBrandIcon.menuBarTemplateImage())
                 .accessibilityLabel("Gloss")
         }
         .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") {
+                    SettingsWindowController.shared.show()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
         }
     }
 }

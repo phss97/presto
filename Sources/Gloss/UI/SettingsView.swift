@@ -7,6 +7,7 @@ public struct SettingsView: View {
     private let permissions = PermissionsManager.shared
     private let modelManager = ModelManager.shared
     private let coordinator = TranslationCoordinator.shared
+    private let loginItems = LoginItemManager.shared
 
     public init() {}
 
@@ -30,6 +31,74 @@ public struct SettingsView: View {
                     Spacer()
                 }
                 .padding(.vertical, 4)
+            }
+
+            Section("Permissions") {
+                LabeledContent("Accessibility") {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(permissions.isAccessibilityGranted ? Color.green : Color.orange)
+                            .frame(width: 8, height: 8)
+                        Text(permissions.isAccessibilityGranted ? "Granted" : "Not Granted")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+
+                        if !permissions.isAccessibilityGranted {
+                            Button("Open Accessibility Settings") {
+                                permissions.requestAccessibilityPrompt()
+                                permissions.openAccessibilitySettings()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+
+                if !permissions.isAccessibilityGranted {
+                    Text("Gloss needs Accessibility access to read and replace the text you highlight. Shortcuts do nothing until it's granted. After installing a new build, you may need to remove Gloss from the list and add it again.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Section("General") {
+                Toggle("Open at Login", isOn: Binding(
+                    get: { loginItems.isEnabled },
+                    set: { loginItems.setEnabled($0) }
+                ))
+
+                if loginItems.requiresApproval {
+                    HStack {
+                        Text("Allow Gloss in System Settings → General → Login Items.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.orange)
+                        Spacer()
+                        Button("Open Login Items") {
+                            loginItems.openLoginItemsSettings()
+                        }
+                        .controlSize(.small)
+                    }
+                }
+
+                if let error = loginItems.lastError {
+                    Text(error)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.red)
+                }
+
+                Toggle("Show Icon in Menu Bar", isOn: $preferences.showMenuBarIcon)
+
+                HStack {
+                    Text("Closing this window keeps Gloss running in the background, so your shortcuts keep working. Open Gloss again to return here.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button("Quit Gloss") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .controlSize(.small)
+                }
             }
 
             Section("Shortcuts & Language") {
@@ -132,32 +201,12 @@ public struct SettingsView: View {
                     }
                 }
             }
-
-            Section("Permissions") {
-                LabeledContent("Accessibility") {
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(permissions.isAccessibilityGranted ? Color.green : Color.orange)
-                            .frame(width: 8, height: 8)
-                        Text(permissions.isAccessibilityGranted ? "Granted" : "Not Granted")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-
-                        if !permissions.isAccessibilityGranted {
-                            Button("Open Accessibility Settings") {
-                                permissions.requestAccessibilityPrompt()
-                                permissions.openAccessibilitySettings()
-                            }
-                            .controlSize(.small)
-                        }
-                    }
-                }
-            }
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 495)
+        .frame(width: 540, height: 640)
         .onAppear {
             permissions.refresh()
+            loginItems.refresh()
             modelManager.refreshState()
         }
     }

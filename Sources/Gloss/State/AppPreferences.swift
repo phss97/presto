@@ -43,6 +43,8 @@ public final class AppPreferences {
         static let pickerTranslateShortcut = "gloss.pickerTranslateShortcut"
         static let enginePreference = "gloss.enginePreference"
         static let customModelPath = "gloss.customModelPath"
+        static let showMenuBarIcon = "gloss.showMenuBarIcon"
+        static let didOfferLaunchAtLogin = "gloss.didOfferLaunchAtLogin"
     }
 
     private let defaults = UserDefaults.standard
@@ -89,6 +91,20 @@ public final class AppPreferences {
         }
     }
 
+    /// Off by default: Gloss runs in the background and settings open when you launch the app.
+    public var showMenuBarIcon: Bool {
+        didSet {
+            defaults.set(showMenuBarIcon, forKey: Keys.showMenuBarIcon)
+        }
+    }
+
+    /// Set once Gloss has turned on launch at login for the first time, so it never re-enables it after you turn it off.
+    public var didOfferLaunchAtLogin: Bool {
+        didSet {
+            defaults.set(didOfferLaunchAtLogin, forKey: Keys.didOfferLaunchAtLogin)
+        }
+    }
+
     public var onShortcutsChanged: (() -> Void)?
 
     public var defaultLanguage: Language {
@@ -116,6 +132,8 @@ public final class AppPreferences {
             self.enginePreference = .auto
         }
         self.customModelPath = defaults.string(forKey: Keys.customModelPath)
+        self.showMenuBarIcon = defaults.bool(forKey: Keys.showMenuBarIcon)
+        self.didOfferLaunchAtLogin = defaults.bool(forKey: Keys.didOfferLaunchAtLogin)
     }
 
     public func recordLanguageUse(_ language: Language) {

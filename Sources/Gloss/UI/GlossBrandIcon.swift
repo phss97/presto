@@ -201,21 +201,18 @@ public struct GlossAppIconView: View {
                 )
 
             // 3. Top liquid-glass specular sheen
-            Ellipse()
+            squircle
                 .fill(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.24),
-                            Color.white.opacity(0.02),
-                            Color.clear
+                        stops: [
+                            .init(color: Color.white.opacity(0.22), location: 0.0),
+                            .init(color: Color.white.opacity(0.04), location: 0.32),
+                            .init(color: Color.clear, location: 0.55)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .frame(width: bodySize * 1.15, height: bodySize * 0.62)
-                .offset(y: -bodySize * 0.28)
-                .clipShape(squircle)
 
             // 4. Back bubble (Top-Left: Frosted translucent glass card with 'A')
             let backW = bodySize * 0.47
@@ -319,6 +316,8 @@ public struct GlossAppIconView: View {
                     lineWidth: max(0.5, bodySize * 0.0032)
                 )
         }
+        // Keep the body exactly square: macOS 26 puts icons that aren't a true squircle in a gray tile.
+        .frame(width: bodySize, height: bodySize)
         .clipShape(squircle)
     }
 }

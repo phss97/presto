@@ -5,7 +5,6 @@ public struct MenuBarContentView: View {
     @Bindable private var preferences = AppPreferences.shared
     private let permissions = PermissionsManager.shared
     private let coordinator = TranslationCoordinator.shared
-    @Environment(\.openSettings) private var openSettings
 
     public init() {}
 
@@ -99,8 +98,7 @@ public struct MenuBarContentView: View {
 
             HStack {
                 Button("Settings…") {
-                    NSApp.activate(ignoringOtherApps: true)
-                    openSettings()
+                    SettingsWindowController.shared.show()
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 12))

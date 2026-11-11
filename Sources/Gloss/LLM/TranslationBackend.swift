@@ -76,6 +76,7 @@ public final class TranslationCoordinator {
     public var onHideHUD: (() -> Void)?
     public var onShowLanguagePicker: ((CapturedSelection) -> Void)?
     public var onHideLanguagePicker: (() -> Void)?
+    public var onAccessibilityMissing: (() -> Void)?
 
     private init() {}
 
@@ -137,6 +138,7 @@ public final class TranslationCoordinator {
         PermissionsManager.shared.refresh()
         guard PermissionsManager.shared.isAccessibilityGranted else {
             PermissionsManager.shared.requestAccessibilityPrompt()
+            onAccessibilityMissing?()
             showTemporaryHUD(.error(message: "Grant Accessibility permission to Gloss"), near: NSEvent.mouseLocation, duration: 3.2)
             return
         }
@@ -155,6 +157,7 @@ public final class TranslationCoordinator {
         PermissionsManager.shared.refresh()
         guard PermissionsManager.shared.isAccessibilityGranted else {
             PermissionsManager.shared.requestAccessibilityPrompt()
+            onAccessibilityMissing?()
             showTemporaryHUD(.error(message: "Grant Accessibility permission to Gloss"), near: NSEvent.mouseLocation, duration: 3.2)
             return
         }
