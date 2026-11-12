@@ -139,7 +139,7 @@ public final class TranslationCoordinator {
         guard PermissionsManager.shared.isAccessibilityGranted else {
             PermissionsManager.shared.requestAccessibilityPrompt()
             onAccessibilityMissing?()
-            showTemporaryHUD(.error(message: "Grant Accessibility permission to Gloss"), near: NSEvent.mouseLocation, duration: 3.2)
+            showTemporaryHUD(.error(message: "Grant Accessibility permission to Presto"), near: NSEvent.mouseLocation, duration: 3.2)
             return
         }
 
@@ -158,7 +158,7 @@ public final class TranslationCoordinator {
         guard PermissionsManager.shared.isAccessibilityGranted else {
             PermissionsManager.shared.requestAccessibilityPrompt()
             onAccessibilityMissing?()
-            showTemporaryHUD(.error(message: "Grant Accessibility permission to Gloss"), near: NSEvent.mouseLocation, duration: 3.2)
+            showTemporaryHUD(.error(message: "Grant Accessibility permission to Presto"), near: NSEvent.mouseLocation, duration: 3.2)
             return
         }
 
@@ -213,7 +213,7 @@ public final class TranslationCoordinator {
         case .appleOnly:
             guard appleAvailable else {
                 throw NSError(
-                    domain: "Gloss",
+                    domain: "Presto",
                     code: 1,
                     userInfo: [NSLocalizedDescriptionKey: appleBackend.availabilityStatus().statusDescription]
                 )

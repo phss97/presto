@@ -3,7 +3,7 @@ import Foundation
 import Observation
 import ServiceManagement
 
-/// Wraps `SMAppService.mainApp` so Gloss can start in the background when the user logs in.
+/// Wraps `SMAppService.mainApp` so Presto can start in the background when the user logs in.
 @MainActor
 @Observable
 public final class LoginItemManager {

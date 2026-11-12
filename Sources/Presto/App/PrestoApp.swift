@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @MainActor
-public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
+public final class PrestoAppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         if let bundledIcon = NSImage(named: "AppIcon") {
@@ -61,7 +61,7 @@ public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Opening Gloss again while it is already running in the background.
+    /// Opening Presto again while it is already running in the background.
     public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         SettingsWindowController.shared.show()
         return false
@@ -86,8 +86,8 @@ public final class GlossAppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-public struct GlossApp: App {
-    @NSApplicationDelegateAdaptor(GlossAppDelegate.self) private var appDelegate
+public struct PrestoApp: App {
+    @NSApplicationDelegateAdaptor(PrestoAppDelegate.self) private var appDelegate
     @Bindable private var preferences = AppPreferences.shared
 
     public init() {}
@@ -96,8 +96,8 @@ public struct GlossApp: App {
         MenuBarExtra(isInserted: $preferences.showMenuBarIcon) {
             MenuBarContentView()
         } label: {
-            Image(nsImage: GlossBrandIcon.menuBarTemplateImage())
-                .accessibilityLabel("Gloss")
+            Image(nsImage: PrestoBrandIcon.menuBarTemplateImage())
+                .accessibilityLabel("Presto")
         }
         .menuBarExtraStyle(.window)
         .commands {

@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Gloss",
+    name: "Presto",
     platforms: [
         .macOS(.v26)
     ],
     products: [
-        .executable(name: "Gloss", targets: ["Gloss"])
+        .executable(name: "Presto", targets: ["Presto"])
     ],
     targets: [
         .binaryTarget(
@@ -15,9 +15,9 @@ let package = Package(
             path: "Vendor/llama.xcframework"
         ),
         .executableTarget(
-            name: "Gloss",
+            name: "Presto",
             dependencies: ["llama"],
-            path: "Sources/Gloss",
+            path: "Sources/Presto",
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("SwiftUI"),

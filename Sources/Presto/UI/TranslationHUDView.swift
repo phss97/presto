@@ -44,7 +44,7 @@ public struct TranslationHUDView: View {
     private var leadingIndicator: some View {
         switch coordinator.hudStatus {
         case .idle:
-            GlossTemplateMarkView(size: 15)
+            PrestoTemplateMarkView(size: 15)
                 .opacity(0.75)
         case .downloadingModel(let progress, _):
             ProgressView(value: progress)
@@ -67,7 +67,7 @@ public struct TranslationHUDView: View {
     private var primaryText: String {
         switch coordinator.hudStatus {
         case .idle:
-            return "Gloss"
+            return "Presto"
         case .downloadingModel(let progress, _):
             let pct = Int((progress * 100).rounded())
             return "Downloading local model (\(pct)%)…"

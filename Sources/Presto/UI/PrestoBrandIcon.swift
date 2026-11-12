@@ -3,7 +3,7 @@ import CoreGraphics
 import SwiftUI
 
 /// Speech bubble card shape with a subtle, continuous-style directional tail on either bottom corner.
-public struct GlossBubbleShape: Shape {
+public struct PrestoBubbleShape: Shape {
     public enum TailSide: Sendable {
         case bottomLeft
         case bottomRight
@@ -128,7 +128,7 @@ public struct GlossBubbleShape: Shape {
 }
 
 /// Full-color macOS Liquid Glass app icon view used both to generate `AppIcon.icns` and as an in-app badge.
-public struct GlossAppIconView: View {
+public struct PrestoAppIconView: View {
     public let size: CGFloat
     public let includeMacOSCanvasPadding: Bool
 
@@ -217,7 +217,7 @@ public struct GlossAppIconView: View {
             // 4. Back bubble (Top-Left: Frosted translucent glass card with 'A')
             let backW = bodySize * 0.47
             let backH = bodySize * 0.44
-            let backShape = GlossBubbleShape(tailSide: .bottomLeft, cornerRadiusRatio: 0.25, tailHeightRatio: 0.10)
+            let backShape = PrestoBubbleShape(tailSide: .bottomLeft, cornerRadiusRatio: 0.25, tailHeightRatio: 0.10)
 
             ZStack {
                 backShape
@@ -259,7 +259,7 @@ public struct GlossAppIconView: View {
             // 5. Front bubble (Bottom-Right: Crisp pearl-white glass card with '文')
             let frontW = bodySize * 0.49
             let frontH = bodySize * 0.46
-            let frontShape = GlossBubbleShape(tailSide: .bottomRight, cornerRadiusRatio: 0.25, tailHeightRatio: 0.10)
+            let frontShape = PrestoBubbleShape(tailSide: .bottomRight, cornerRadiusRatio: 0.25, tailHeightRatio: 0.10)
 
             ZStack {
                 frontShape
@@ -324,7 +324,7 @@ public struct GlossAppIconView: View {
 
 /// Monochrome template vector mark sharing the exact overlapping `A` + `文` bubble silhouette,
 /// engineered for crisp rendering at `13–18pt` in the macOS menu bar, HUD pill, and picker header.
-public struct GlossTemplateMarkView: View {
+public struct PrestoTemplateMarkView: View {
     public let size: CGFloat
 
     public init(size: CGFloat = 16) {
@@ -332,14 +332,14 @@ public struct GlossTemplateMarkView: View {
     }
 
     public var body: some View {
-        Image(nsImage: GlossBrandIcon.templateImage(pointSize: size))
+        Image(nsImage: PrestoBrandIcon.templateImage(pointSize: size))
             .interpolation(.high)
             .resizable()
             .frame(width: size, height: size)
     }
 }
 
-public enum GlossBrandIcon {
+public enum PrestoBrandIcon {
     /// Returns a dynamic vector-backed `NSImage` with `isTemplate = true` for `MenuBarExtra` and monochrome UI slots.
     public static func menuBarTemplateImage() -> NSImage {
         templateImage(pointSize: 18)
@@ -391,14 +391,14 @@ public enum GlossBrandIcon {
         let backRect = CGRect(x: 1.0, y: 1.1, width: 10.2, height: 9.6)
         let frontRect = CGRect(x: 6.8, y: 6.9, width: 10.2, height: 9.8)
 
-        let backBubble = GlossBubbleShape.makePath(
+        let backBubble = PrestoBubbleShape.makePath(
             in: backRect,
             tailSide: .bottomLeft,
             cornerRadiusRatio: 0.25,
             tailHeightRatio: 0.11
         ).cgPath
 
-        let frontBubble = GlossBubbleShape.makePath(
+        let frontBubble = PrestoBubbleShape.makePath(
             in: frontRect,
             tailSide: .bottomRight,
             cornerRadiusRatio: 0.25,

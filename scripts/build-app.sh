@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="Gloss"
-BUNDLE_ID="${BUNDLE_ID:-com.gloss.translator}"
+APP_NAME="Presto"
+BUNDLE_ID="${BUNDLE_ID:-io.github.phss97.presto}"
 DIST_DIR="${ROOT_DIR}/dist"
 APP_BUNDLE="${DIST_DIR}/${APP_NAME}.app"
 CONTENTS_DIR="${APP_BUNDLE}/Contents"
@@ -81,7 +81,7 @@ cp -R "${LLAMA_FRAMEWORK_SRC}" "${FRAMEWORKS_DIR}/llama.framework"
 echo "Generating AppIcon.icns..."
 mkdir -p "${ROOT_DIR}/.build"
 swiftc -parse-as-library \
-  "${ROOT_DIR}/Sources/Gloss/UI/GlossBrandIcon.swift" \
+  "${ROOT_DIR}/Sources/Presto/UI/PrestoBrandIcon.swift" \
   "${ROOT_DIR}/scripts/generate-icon.swift" \
   -o "${ROOT_DIR}/.build/generate-icon"
 "${ROOT_DIR}/.build/generate-icon" "${RESOURCES_DIR}/AppIcon.icns"
@@ -99,7 +99,7 @@ if [[ "${BUNDLE_MODEL}" -eq 1 ]]; then
     echo "Bundling custom model $(basename "${CUSTOM_MODEL_FILE}") into app resources..."
     cp "${CUSTOM_MODEL_FILE}" "${RESOURCES_DIR}/Models/$(basename "${CUSTOM_MODEL_FILE}")"
   else
-    CACHED_MODEL="${HOME}/Library/Application Support/Gloss/Models/${DEFAULT_MODEL_NAME}"
+    CACHED_MODEL="${HOME}/Library/Application Support/Presto/Models/${DEFAULT_MODEL_NAME}"
     if [[ -f "${CACHED_MODEL}" ]]; then
       echo "Copying cached ${DEFAULT_MODEL_NAME} into app resources..."
       cp "${CACHED_MODEL}" "${RESOURCES_DIR}/Models/${DEFAULT_MODEL_NAME}"
@@ -149,9 +149,18 @@ cat > "${CONTENTS_DIR}/Info.plist" <<EOF
 </plist>
 EOF
 
-echo "Signing ${APP_BUNDLE}..."
-codesign --force --sign - "${FRAMEWORKS_DIR}/llama.framework"
-codesign --force --deep --sign - "${APP_BUNDLE}"
+# Ad-hoc signatures change with every build, so macOS forgets the Accessibility grant
+# after each reinstall. A stable self-signed certificate keeps the grant across rebuilds.
+SIGN_IDENTITY="${PRESTO_SIGN_IDENTITY:-Presto Local Signing}"
+if ! security find-identity -p codesigning | grep -q "\"${SIGN_IDENTITY}\""; then
+  echo "Warning: signing identity \"${SIGN_IDENTITY}\" not found; using an ad-hoc signature." >&2
+  echo "         Accessibility permission will need to be re-granted after each install." >&2
+  SIGN_IDENTITY="-"
+fi
+
+echo "Signing ${APP_BUNDLE} (identity: ${SIGN_IDENTITY})..."
+codesign --force --sign "${SIGN_IDENTITY}" "${FRAMEWORKS_DIR}/llama.framework"
+codesign --force --deep --sign "${SIGN_IDENTITY}" "${APP_BUNDLE}"
 touch "${APP_BUNDLE}"
 
 echo "Built and signed: ${APP_BUNDLE}"

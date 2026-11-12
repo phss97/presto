@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Owns the settings window. Gloss runs as a background agent with no Dock icon;
+/// Owns the settings window. Presto runs as a background agent with no Dock icon;
 /// while this window is open it becomes a regular app so it shows in the Dock and Cmd-Tab.
 @MainActor
 public final class SettingsWindowController: NSObject, NSWindowDelegate {
@@ -34,7 +34,7 @@ public final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
-        window.title = "Gloss"
+        window.title = "Presto"
         window.styleMask = [.titled, .closable, .miniaturizable]
         window.isReleasedWhenClosed = false
         window.delegate = self

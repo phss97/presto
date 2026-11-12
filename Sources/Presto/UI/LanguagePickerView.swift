@@ -58,7 +58,7 @@ public struct LanguagePickerView: View {
         VStack(spacing: 0) {
             // Selected text preview bar
             HStack(spacing: 8) {
-                GlossTemplateMarkView(size: 13)
+                PrestoTemplateMarkView(size: 13)
                     .opacity(0.68)
 
                 Text(snippetPreview)

@@ -39,7 +39,7 @@ public final class ModelManager {
 
     public var modelsDirectoryURL: URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        return appSupport.appendingPathComponent("Gloss/Models", isDirectory: true)
+        return appSupport.appendingPathComponent("Presto/Models", isDirectory: true)
     }
 
     public var downloadedDefaultModelURL: URL {
@@ -242,7 +242,7 @@ private final class DownloadSessionDelegate: NSObject, URLSessionDownloadDelegat
 
         // Copy to a stable temporary file before URLSession deletes `location` upon return
         let stableTemp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gloss-model-\(UUID().uuidString).gguf")
+            .appendingPathComponent("presto-model-\(UUID().uuidString).gguf")
         do {
             try FileManager.default.moveItem(at: location, to: stableTemp)
             onComplete(.success(stableTemp))

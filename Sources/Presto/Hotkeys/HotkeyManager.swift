@@ -113,9 +113,9 @@ public struct KeyShortcut: Codable, Equatable, Sendable {
     }
 }
 
-private let hotkeySignature: OSType = 0x474C_4F53 // 'GLOS'
+private let hotkeySignature: OSType = 0x5052_5354 // 'PRST'
 
-private func glossHotkeyEventHandler(
+private func prestoHotkeyEventHandler(
     nextHandler: EventHandlerCallRef?,
     event: EventRef?,
     userData: UnsafeMutableRawPointer?
@@ -166,7 +166,7 @@ public final class HotkeyManager {
         )
         InstallEventHandler(
             GetApplicationEventTarget(),
-            glossHotkeyEventHandler,
+            prestoHotkeyEventHandler,
             1,
             &eventSpec,
             nil,

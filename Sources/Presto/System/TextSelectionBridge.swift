@@ -25,7 +25,7 @@ public enum SelectionBridgeError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .accessibilityPermissionRequired:
-            return "Enable Accessibility access for Gloss in System Settings."
+            return "Enable Accessibility access for Presto in System Settings."
         case .noSelection:
             return "No highlighted text found."
         case .targetAppUnavailable:

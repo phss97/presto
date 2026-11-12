@@ -25,7 +25,7 @@ enum IconGeneratorMain {
 
     static func generateICNS(outputICNS: URL, previewDir: URL?) throws {
         let fm = FileManager.default
-        let tempIconset = fm.temporaryDirectory.appendingPathComponent("Gloss-\(UUID().uuidString).iconset", isDirectory: true)
+        let tempIconset = fm.temporaryDirectory.appendingPathComponent("Presto-\(UUID().uuidString).iconset", isDirectory: true)
         try fm.createDirectory(at: tempIconset, withIntermediateDirectories: true)
         defer {
             try? fm.removeItem(at: tempIconset)
@@ -46,7 +46,7 @@ enum IconGeneratorMain {
 
         for spec in specs {
             let pixels = spec.points * spec.scale
-            let iconView = GlossAppIconView(
+            let iconView = PrestoAppIconView(
                 size: CGFloat(pixels),
                 includeMacOSCanvasPadding: true
             )
@@ -90,7 +90,7 @@ enum IconGeneratorMain {
             if let cgImage = renderer.cgImage {
                 let rep = NSBitmapImageRep(cgImage: cgImage)
                 if let data = rep.representation(using: .png, properties: [:]) {
-                    try data.write(to: previewDir.appendingPathComponent("gloss-icon-showcase.png"))
+                    try data.write(to: previewDir.appendingPathComponent("presto-icon-showcase.png"))
                 }
             }
         }
@@ -102,7 +102,7 @@ private struct IconSystemShowcaseView: View {
         VStack(spacing: 28) {
             HStack(spacing: 36) {
                 VStack(spacing: 10) {
-                    GlossAppIconView(size: 220, includeMacOSCanvasPadding: true)
+                    PrestoAppIconView(size: 220, includeMacOSCanvasPadding: true)
                     Text("App Icon (macOS Squircle)")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -112,7 +112,7 @@ private struct IconSystemShowcaseView: View {
                     // Simulated Dark macOS Menu Bar
                     HStack(spacing: 16) {
                         Image(systemName: "wifi")
-                        GlossMenuBarSimulatedTint(isDarkBar: true)
+                        PrestoMenuBarSimulatedTint(isDarkBar: true)
                         Image(systemName: "battery.100")
                         Text("Wed Nov 11  4:58 PM")
                             .font(.system(size: 12, weight: .medium))
@@ -128,7 +128,7 @@ private struct IconSystemShowcaseView: View {
                     // Simulated Light macOS Menu Bar
                     HStack(spacing: 16) {
                         Image(systemName: "wifi")
-                        GlossMenuBarSimulatedTint(isDarkBar: false)
+                        PrestoMenuBarSimulatedTint(isDarkBar: false)
                         Image(systemName: "battery.100")
                         Text("Wed Nov 11  4:58 PM")
                             .font(.system(size: 12, weight: .medium))
@@ -148,19 +148,19 @@ private struct IconSystemShowcaseView: View {
                     // Zoomed Menu Bar Vector Inspection + Small App Sizes
                     HStack(spacing: 20) {
                         VStack(spacing: 4) {
-                            GlossMenuBarSimulatedTint(isDarkBar: false, pointSize: 44)
+                            PrestoMenuBarSimulatedTint(isDarkBar: false, pointSize: 44)
                             Text("Menu Bar Mark")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
                         VStack(spacing: 4) {
-                            GlossAppIconView(size: 48, includeMacOSCanvasPadding: false)
+                            PrestoAppIconView(size: 48, includeMacOSCanvasPadding: false)
                             Text("Settings 48pt")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
                         VStack(spacing: 4) {
-                            GlossAppIconView(size: 22, includeMacOSCanvasPadding: false)
+                            PrestoAppIconView(size: 22, includeMacOSCanvasPadding: false)
                             Text("Popover 22pt")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
@@ -175,12 +175,12 @@ private struct IconSystemShowcaseView: View {
     }
 }
 
-private struct GlossMenuBarSimulatedTint: View {
+private struct PrestoMenuBarSimulatedTint: View {
     let isDarkBar: Bool
     var pointSize: CGFloat = 18
 
     var body: some View {
-        Image(nsImage: GlossBrandIcon.templateImage(pointSize: pointSize))
+        Image(nsImage: PrestoBrandIcon.templateImage(pointSize: pointSize))
             .renderingMode(.template)
             .resizable()
             .frame(width: pointSize, height: pointSize)

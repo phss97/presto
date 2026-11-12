@@ -11,8 +11,8 @@ public struct MenuBarContentView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                GlossAppIconView(size: 20, includeMacOSCanvasPadding: false)
-                Text("Gloss")
+                PrestoAppIconView(size: 20, includeMacOSCanvasPadding: false)
+                Text("Presto")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Text(preferences.enginePreference.shortTitle)
@@ -29,7 +29,7 @@ public struct MenuBarContentView: View {
                         .font(.system(size: 11.5, weight: .semibold))
                         .foregroundStyle(.orange)
 
-                    Text("Gloss needs Accessibility access to read & replace highlighted text.")
+                    Text("Presto needs Accessibility access to read & replace highlighted text.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -105,7 +105,7 @@ public struct MenuBarContentView: View {
 
                 Spacer()
 
-                Button("Quit Gloss") {
+                Button("Quit Presto") {
                     NSApplication.shared.terminate(nil)
                 }
                 .buttonStyle(.plain)

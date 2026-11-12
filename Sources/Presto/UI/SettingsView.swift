@@ -15,10 +15,10 @@ public struct SettingsView: View {
         Form {
             Section {
                 HStack(spacing: 14) {
-                    GlossAppIconView(size: 48, includeMacOSCanvasPadding: false)
+                    PrestoAppIconView(size: 48, includeMacOSCanvasPadding: false)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text("Gloss")
+                            Text("Presto")
                                 .font(.system(size: 16, weight: .semibold))
                             Text("1.0")
                                 .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -54,7 +54,7 @@ public struct SettingsView: View {
                 }
 
                 if !permissions.isAccessibilityGranted {
-                    Text("Gloss needs Accessibility access to read and replace the text you highlight. Shortcuts do nothing until it's granted. After installing a new build, you may need to remove Gloss from the list and add it again.")
+                    Text("Presto needs Accessibility access to read and replace the text you highlight. Shortcuts do nothing until it's granted. After installing a new build, you may need to remove Presto from the list and add it again.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -69,7 +69,7 @@ public struct SettingsView: View {
 
                 if loginItems.requiresApproval {
                     HStack {
-                        Text("Allow Gloss in System Settings → General → Login Items.")
+                        Text("Allow Presto in System Settings → General → Login Items.")
                             .font(.system(size: 11))
                             .foregroundStyle(.orange)
                         Spacer()
@@ -89,12 +89,12 @@ public struct SettingsView: View {
                 Toggle("Show Icon in Menu Bar", isOn: $preferences.showMenuBarIcon)
 
                 HStack {
-                    Text("Closing this window keeps Gloss running in the background, so your shortcuts keep working. Open Gloss again to return here.")
+                    Text("Closing this window keeps Presto running in the background, so your shortcuts keep working. Open Presto again to return here.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer()
-                    Button("Quit Gloss") {
+                    Button("Quit Presto") {
                         NSApplication.shared.terminate(nil)
                     }
                     .controlSize(.small)

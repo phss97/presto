@@ -37,14 +37,14 @@ public final class AppPreferences {
     public static let shared = AppPreferences()
 
     private enum Keys {
-        static let defaultLanguageCode = "gloss.defaultLanguageCode"
-        static let recentLanguageCodes = "gloss.recentLanguageCodes"
-        static let quickTranslateShortcut = "gloss.quickTranslateShortcut"
-        static let pickerTranslateShortcut = "gloss.pickerTranslateShortcut"
-        static let enginePreference = "gloss.enginePreference"
-        static let customModelPath = "gloss.customModelPath"
-        static let showMenuBarIcon = "gloss.showMenuBarIcon"
-        static let didOfferLaunchAtLogin = "gloss.didOfferLaunchAtLogin"
+        static let defaultLanguageCode = "presto.defaultLanguageCode"
+        static let recentLanguageCodes = "presto.recentLanguageCodes"
+        static let quickTranslateShortcut = "presto.quickTranslateShortcut"
+        static let pickerTranslateShortcut = "presto.pickerTranslateShortcut"
+        static let enginePreference = "presto.enginePreference"
+        static let customModelPath = "presto.customModelPath"
+        static let showMenuBarIcon = "presto.showMenuBarIcon"
+        static let didOfferLaunchAtLogin = "presto.didOfferLaunchAtLogin"
     }
 
     private let defaults = UserDefaults.standard
@@ -91,14 +91,14 @@ public final class AppPreferences {
         }
     }
 
-    /// Off by default: Gloss runs in the background and settings open when you launch the app.
+    /// Off by default: Presto runs in the background and settings open when you launch the app.
     public var showMenuBarIcon: Bool {
         didSet {
             defaults.set(showMenuBarIcon, forKey: Keys.showMenuBarIcon)
         }
     }
 
-    /// Set once Gloss has turned on launch at login for the first time, so it never re-enables it after you turn it off.
+    /// Set once Presto has turned on launch at login for the first time, so it never re-enables it after you turn it off.
     public var didOfferLaunchAtLogin: Bool {
         didSet {
             defaults.set(didOfferLaunchAtLogin, forKey: Keys.didOfferLaunchAtLogin)
