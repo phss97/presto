@@ -46,3 +46,7 @@ The build script uses it automatically. To use a certificate with another name, 
 | --- | --- |
 | `--install [dir]` | Install the app to `/Applications`, or to `dir` |
 | `--bundle-model [file.gguf]` | Ship a local model inside the app (Qwen 2.5 1.5B by default) |
+
+## License
+
+MIT. See [LICENSE](LICENSE).
