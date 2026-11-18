@@ -24,6 +24,13 @@ public enum TranslationPromptBuilder {
         """
     }
 
+    /// Gemma turn format. TranslateGemma's GGUF chat template only accepts structured
+    /// source/target blocks, so the instruction goes in the user turn instead.
+    public static func gemmaPrompt(for text: String, targetLanguage: Language) -> String {
+        let instruction = "Translate the following text into \(targetLanguage.englishName) (\(targetLanguage.nativeName)). Reply with ONLY the translation, keeping line breaks, punctuation, and formatting."
+        return "<start_of_turn>user\n\(instruction)\n<source_text>\n\(text)\n</source_text><end_of_turn>\n<start_of_turn>model\n"
+    }
+
     public static func cleanOutput(_ raw: String, originalSource: String) -> String {
         var result = raw
 
@@ -51,7 +58,6 @@ public enum TranslationPromptBuilder {
 
 public enum HUDStatus: Equatable, Sendable {
     case idle
-    case downloadingModel(progress: Double, languageName: String)
     case loadingModel(languageName: String)
     case translating(languageName: String, engineBadge: String)
     case completed(languageName: String)
@@ -72,6 +78,9 @@ public final class TranslationCoordinator {
     private var currentTask: Task<Void, Never>?
     private var hudDismissTask: Task<Void, Never>?
 
+    /// Last local model that translated, so a newly selected model can keep downloading in the background.
+    private var lastUsedModel: LocalModel?
+
     public var onShowHUD: ((CGPoint) -> Void)?
     public var onHideHUD: (() -> Void)?
     public var onShowLanguagePicker: ((CapturedSelection) -> Void)?
@@ -82,17 +91,23 @@ public final class TranslationCoordinator {
 
     public var activeEngineSummary: String {
         let appleStatus = appleBackend.availabilityStatus()
-        switch AppPreferences.shared.enginePreference {
-        case .auto:
-            if appleStatus.isAvailable {
-                return "Apple Intelligence (On-Device)"
-            }
-            return "Local GGUF · \(ModelManager.shared.modelStatusSummary)"
+        let primary = AppPreferences.shared.enginePreference
+        switch primary {
         case .appleOnly:
-            return appleStatus.statusDescription
-        case .llamaCppOnly:
-            return "Local GGUF · \(ModelManager.shared.modelStatusSummary)"
+            return appleStatus.isAvailable ? "Apple Intelligence (On-Device)" : appleStatus.statusDescription
+        case .custom:
+            if let url = ModelManager.shared.customModelURL {
+                return "Custom · \(url.lastPathComponent)"
+            }
+            return "Custom · no file chosen"
+        case .hyMT, .translateGemma, .qwen:
+            guard let model = primary.localModel else { return primary.displayName }
+            return localSummary(for: model)
         }
+    }
+
+    private func localSummary(for model: LocalModel) -> String {
+        "\(model.displayName) · \(ModelManager.shared.statusSummary(for: model))"
     }
 
     public func triggerQuickTranslate() {
@@ -205,73 +220,106 @@ public final class TranslationCoordinator {
         targetLanguage: Language,
         anchor: CGPoint
     ) async throws -> String {
-        let preference = AppPreferences.shared.enginePreference
-        let appleAvailable = appleBackend.availabilityStatus().isAvailable
+        let engine = try resolveEngine()
 
-        let shouldUseApple: Bool
-        switch preference {
-        case .appleOnly:
-            guard appleAvailable else {
-                throw NSError(
-                    domain: "Presto",
-                    code: 1,
-                    userInfo: [NSLocalizedDescriptionKey: appleBackend.availabilityStatus().statusDescription]
-                )
-            }
-            shouldUseApple = true
-        case .auto:
-            shouldUseApple = appleAvailable
-        case .llamaCppOnly:
-            shouldUseApple = false
-        }
-
-        if shouldUseApple {
+        switch engine {
+        case .apple:
             hudStatus = .translating(languageName: targetLanguage.englishName, engineBadge: "Apple LLM")
             onShowHUD?(anchor)
             return try await appleBackend.translate(text: text, to: targetLanguage)
-        }
 
-        // Fallback / selected: embedded llama.cpp GGUF
-        let modelURL: URL
-        if let resolved = ModelManager.shared.resolvedModelURL {
-            modelURL = resolved
-        } else {
-            hudStatus = .downloadingModel(progress: 0, languageName: targetLanguage.englishName)
-            onShowHUD?(anchor)
-
-            let progressPoller = Task { @MainActor in
-                while !Task.isCancelled && ModelManager.shared.isDownloading {
-                    self.hudStatus = .downloadingModel(
-                        progress: ModelManager.shared.downloadProgress,
-                        languageName: targetLanguage.englishName
-                    )
-                    try? await Task.sleep(for: .milliseconds(100))
-                }
+        case .local(let model, let modelURL):
+            let alreadyLoaded = await LlamaCppBackend.shared.isModelLoaded()
+            if !alreadyLoaded {
+                hudStatus = .loadingModel(languageName: targetLanguage.englishName)
+                onShowHUD?(anchor)
+            } else {
+                hudStatus = .translating(languageName: targetLanguage.englishName, engineBadge: badge(for: model))
+                onShowHUD?(anchor)
             }
-            defer { progressPoller.cancel() }
 
-            modelURL = try await ModelManager.shared.ensureModelAvailable()
-        }
-
-        let alreadyLoaded = await LlamaCppBackend.shared.isModelLoaded()
-        if !alreadyLoaded {
-            hudStatus = .loadingModel(languageName: targetLanguage.englishName)
-            onShowHUD?(anchor)
-        } else {
-            hudStatus = .translating(languageName: targetLanguage.englishName, engineBadge: "Local GGUF")
-            onShowHUD?(anchor)
-        }
-
-        return try await LlamaCppBackend.shared.translate(
-            text: text,
-            to: targetLanguage,
-            modelURL: modelURL,
-            onLoadingModel: {
-                Task { @MainActor in
-                    TranslationCoordinator.shared.hudStatus = .loadingModel(languageName: targetLanguage.englishName)
+            let translated = try await LlamaCppBackend.shared.translate(
+                text: text,
+                to: targetLanguage,
+                localModel: model,
+                modelURL: modelURL,
+                onLoadingModel: {
+                    Task { @MainActor in
+                        TranslationCoordinator.shared.hudStatus = .loadingModel(languageName: targetLanguage.englishName)
+                    }
                 }
+            )
+            if let model {
+                lastUsedModel = model
             }
+            return translated
+        }
+    }
+
+    private enum ResolvedEngine {
+        case apple
+        case local(model: LocalModel?, url: URL)
+    }
+
+    private func badge(for model: LocalModel?) -> String {
+        let primary = AppPreferences.shared.enginePreference
+        let isPrimary = model.map { primary.localModel == $0 } ?? (primary == .custom)
+        let name = model?.displayName ?? "Custom model"
+        return isPrimary ? name : "\(name) · fallback"
+    }
+
+    /// Primary engine if ready, then the chosen fallback, then whatever translated last.
+    /// Never downloads: the settings window owns that.
+    private func resolveEngine() throws -> ResolvedEngine {
+        let preferences = AppPreferences.shared
+        let primary = preferences.enginePreference
+        let appleAvailable = appleBackend.availabilityStatus().isAvailable
+
+        if primary == .appleOnly, appleAvailable {
+            return .apple
+        }
+        if primary == .custom, let url = ModelManager.shared.customModelURL {
+            return .local(model: nil, url: url)
+        }
+        if let model = primary.localModel, let url = ModelManager.shared.resolvedURL(for: model) {
+            return .local(model: model, url: url)
+        }
+
+        if let fallback = preferences.fallbackEngine {
+            if fallback == .appleOnly, appleAvailable {
+                return .apple
+            }
+            if let model = fallback.localModel, let url = ModelManager.shared.resolvedURL(for: model) {
+                return .local(model: model, url: url)
+            }
+        }
+
+        if let lastUsedModel, let url = ModelManager.shared.resolvedURL(for: lastUsedModel) {
+            return .local(model: lastUsedModel, url: url)
+        }
+
+        throw NSError(
+            domain: "Presto",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: missingEngineMessage(for: primary)]
         )
+    }
+
+    private func missingEngineMessage(for primary: EnginePreference) -> String {
+        switch primary {
+        case .appleOnly:
+            return appleBackend.availabilityStatus().statusDescription
+        case .custom:
+            return "Choose a custom .gguf model in Presto settings"
+        case .hyMT, .qwen, .translateGemma:
+            let name = primary.displayName
+            if let model = primary.localModel,
+               ModelManager.shared.isDownloading,
+               ModelManager.shared.downloadingModel == model {
+                return "Downloading \(name)…"
+            }
+            return "Download \(name) in Presto settings"
+        }
     }
 
     private func showTemporaryHUD(_ status: HUDStatus, near anchor: CGPoint, duration: Double) {

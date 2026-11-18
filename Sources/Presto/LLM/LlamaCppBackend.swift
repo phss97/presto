@@ -60,6 +60,7 @@ public actor LlamaCppBackend {
     public func translate(
         text: String,
         to targetLanguage: Language,
+        localModel: LocalModel?,
         modelURL: URL,
         onLoadingModel: (@Sendable () -> Void)? = nil
     ) async throws -> String {
@@ -89,7 +90,9 @@ public actor LlamaCppBackend {
 
         let systemPrompt = TranslationPromptBuilder.systemInstructions(for: targetLanguage)
         let userPrompt = TranslationPromptBuilder.userPrompt(for: text, targetLanguage: targetLanguage)
-        let formattedPrompt = formatChatPrompt(model: model, system: systemPrompt, user: userPrompt)
+        let formattedPrompt = (localModel?.usesGemmaTurns ?? false)
+            ? TranslationPromptBuilder.gemmaPrompt(for: text, targetLanguage: targetLanguage)
+            : formatChatPrompt(model: model, system: systemPrompt, user: userPrompt)
 
         let promptTokens = try tokenize(text: formattedPrompt, vocab: vocab, addSpecial: true, parseSpecial: true)
         guard !promptTokens.isEmpty else {

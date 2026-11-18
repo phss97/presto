@@ -13,7 +13,23 @@ You can change both shortcuts in settings.
 
 - macOS 26 or later
 - Apple's Command Line Tools with Swift 6.2 or later (`xcode-select --install`)
-- For the Apple Intelligence engine, a Mac with Apple Intelligence turned on. Otherwise Presto uses a local model, which you can download from settings (about 1 GB).
+- For the Apple Intelligence engine, a Mac with Apple Intelligence turned on. Otherwise pick a local model in settings, which you download once.
+
+## Translation model
+
+Settings → Translation Model lists one row per engine, each with its own action:
+
+| Option | Notes |
+| --- | --- |
+| HY-MT1.5 1.8B (Recommended) | Tencent model tuned for translation, ~1.1 GB. Default for new installs |
+| Apple Intelligence | No download. Some text may be refused by Apple's on-device model |
+| Qwen 2.5 1.5B | General-purpose model, ~986 MB |
+| TranslateGemma 4B | Google model tuned for translation, ~2.5 GB |
+| Custom GGUF | Any GGUF file on your Mac, chosen with the file picker |
+
+Click **Download** on a local model and Presto stores it in `~/Library/Application Support/Presto/Models`. Switching back to a model you already downloaded is instant.
+
+**Fallback** picks a second model for when the selected one isn't ready — for example while a new model is downloading, or when Apple Intelligence is unavailable. Presto never starts a download on its own, so an unconfigured model shows a reminder instead of a progress bar.
 
 ## Install
 
@@ -45,7 +61,7 @@ The build script uses it automatically. To use a certificate with another name, 
 | Option | Effect |
 | --- | --- |
 | `--install [dir]` | Install the app to `/Applications`, or to `dir` |
-| `--bundle-model [file.gguf]` | Ship a local model inside the app (Qwen 2.5 1.5B by default) |
+| `--bundle-model [file.gguf]` | Ship a local model inside the app (HY-MT1.5 1.8B by default) |
 
 ## License
 

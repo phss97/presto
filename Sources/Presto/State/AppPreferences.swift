@@ -2,31 +2,55 @@ import Foundation
 import Observation
 
 public enum EnginePreference: String, CaseIterable, Codable, Identifiable, Sendable {
-    case auto
+    case hyMT
     case appleOnly
-    case llamaCppOnly
+    case qwen
+    case translateGemma
+    case custom
 
     public var id: String { rawValue }
 
-    public var title: String {
+    /// Local model this engine translates with; `nil` for Apple Intelligence and custom GGUFs.
+    public var localModel: LocalModel? {
         switch self {
-        case .auto:
-            return "Automatic (Apple Intelligence, then Local GGUF)"
+        case .hyMT:
+            return .hyMT
+        case .translateGemma:
+            return .translateGemma
+        case .qwen:
+            return .qwen
+        case .appleOnly, .custom:
+            return nil
+        }
+    }
+
+    public var displayName: String {
+        switch self {
+        case .hyMT:
+            return "HY-MT1.5 1.8B"
         case .appleOnly:
-            return "Apple Intelligence Only"
-        case .llamaCppOnly:
-            return "Embedded Local GGUF (llama.cpp) Only"
+            return "Apple Intelligence"
+        case .qwen:
+            return "Qwen 2.5 1.5B"
+        case .translateGemma:
+            return "TranslateGemma 4B"
+        case .custom:
+            return "Custom GGUF"
         }
     }
 
     public var shortTitle: String {
         switch self {
-        case .auto:
-            return "Auto"
+        case .custom:
+            return "Custom"
         case .appleOnly:
             return "Apple LLM"
-        case .llamaCppOnly:
-            return "Local GGUF"
+        case .hyMT:
+            return "HY-MT 1.8B"
+        case .translateGemma:
+            return "TranslateGemma 4B"
+        case .qwen:
+            return "Qwen 1.5B"
         }
     }
 }
@@ -42,6 +66,7 @@ public final class AppPreferences {
         static let quickTranslateShortcut = "presto.quickTranslateShortcut"
         static let pickerTranslateShortcut = "presto.pickerTranslateShortcut"
         static let enginePreference = "presto.enginePreference"
+        static let fallbackEngine = "presto.fallbackEngine"
         static let customModelPath = "presto.customModelPath"
         static let showMenuBarIcon = "presto.showMenuBarIcon"
         static let didOfferLaunchAtLogin = "presto.didOfferLaunchAtLogin"
@@ -78,6 +103,20 @@ public final class AppPreferences {
     public var enginePreference: EnginePreference {
         didSet {
             defaults.set(enginePreference.rawValue, forKey: Keys.enginePreference)
+            if fallbackEngine == enginePreference {
+                fallbackEngine = nil
+            }
+        }
+    }
+
+    /// Optional model used only when the selected engine isn't ready. `nil` means none.
+    public var fallbackEngine: EnginePreference? {
+        didSet {
+            if let fallbackEngine {
+                defaults.set(fallbackEngine.rawValue, forKey: Keys.fallbackEngine)
+            } else {
+                defaults.removeObject(forKey: Keys.fallbackEngine)
+            }
         }
     }
 
@@ -125,13 +164,31 @@ public final class AppPreferences {
             ?? .defaultQuickTranslate
         self.pickerTranslateShortcut = Self.loadCodable(KeyShortcut.self, from: defaults, key: Keys.pickerTranslateShortcut)
             ?? .defaultLanguagePicker
-        if let rawEngine = defaults.string(forKey: Keys.enginePreference),
-           let parsed = EnginePreference(rawValue: rawEngine) {
-            self.enginePreference = parsed
+        let customPath = defaults.string(forKey: Keys.customModelPath)
+        var engine: EnginePreference
+        if let rawEngine = defaults.string(forKey: Keys.enginePreference) {
+            // Legacy values: "auto" was Apple-then-Qwen, "llamaCppOnly" was the Qwen engine.
+            // A custom .gguf used to override every local engine, so migrate it to its own choice.
+            engine = rawEngine == "auto" ? .hyMT
+                : rawEngine == "llamaCppOnly" ? .qwen
+                : EnginePreference(rawValue: rawEngine) ?? .hyMT
+            if (rawEngine == "auto" || rawEngine == "llamaCppOnly"),
+               let customPath, !customPath.isEmpty {
+                engine = .custom
+            }
         } else {
-            self.enginePreference = .auto
+            engine = .hyMT
         }
-        self.customModelPath = defaults.string(forKey: Keys.customModelPath)
+        self.enginePreference = engine
+        if let rawFallback = defaults.string(forKey: Keys.fallbackEngine),
+           let parsed = EnginePreference(rawValue: rawFallback),
+           parsed != .custom,
+           parsed != engine {
+            self.fallbackEngine = parsed
+        } else {
+            self.fallbackEngine = nil
+        }
+        self.customModelPath = customPath
         self.showMenuBarIcon = defaults.bool(forKey: Keys.showMenuBarIcon)
         self.didOfferLaunchAtLogin = defaults.bool(forKey: Keys.didOfferLaunchAtLogin)
     }

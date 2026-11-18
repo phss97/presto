@@ -46,10 +46,6 @@ public struct TranslationHUDView: View {
         case .idle:
             PrestoTemplateMarkView(size: 15)
                 .opacity(0.75)
-        case .downloadingModel(let progress, _):
-            ProgressView(value: progress)
-                .progressViewStyle(.circular)
-                .controlSize(.small)
         case .loadingModel, .translating:
             ProgressView()
                 .controlSize(.small)
@@ -68,9 +64,6 @@ public struct TranslationHUDView: View {
         switch coordinator.hudStatus {
         case .idle:
             return "Presto"
-        case .downloadingModel(let progress, _):
-            let pct = Int((progress * 100).rounded())
-            return "Downloading local model (\(pct)%)…"
         case .loadingModel(let languageName):
             return "Loading local model for \(languageName)…"
         case .translating(let languageName, _):
@@ -84,8 +77,6 @@ public struct TranslationHUDView: View {
 
     private var secondaryText: String? {
         switch coordinator.hudStatus {
-        case .downloadingModel:
-            return "One-time setup · Stored on Mac"
         case .translating(_, let badge):
             return badge
         default:

@@ -11,7 +11,7 @@ public struct MenuBarContentView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                PrestoAppIconView(size: 20, includeMacOSCanvasPadding: false)
+                PrestoAppIconView(size: 20)
                 Text("Presto")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
@@ -122,12 +122,15 @@ public struct MenuBarContentView: View {
     }
 
     private var engineIndicatorColor: Color {
-        if coordinator.appleBackend.availabilityStatus().isAvailable && preferences.enginePreference != .llamaCppOnly {
-            return .green
-        }
-        if ModelManager.shared.resolvedModelURL != nil && preferences.enginePreference != .appleOnly {
-            return .green
-        }
-        return .orange
+        let preferences = AppPreferences.shared
+        let primaryReady = preferences.enginePreference == .appleOnly
+            ? coordinator.appleBackend.availabilityStatus().isAvailable
+            : ModelManager.shared.isReady(preferences.enginePreference)
+        let fallbackReady = preferences.fallbackEngine.map { fallback in
+            fallback == .appleOnly
+                ? coordinator.appleBackend.availabilityStatus().isAvailable
+                : ModelManager.shared.isReady(fallback)
+        } ?? false
+        return primaryReady || fallbackReady ? .green : .orange
     }
 }

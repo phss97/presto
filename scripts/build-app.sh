@@ -88,8 +88,8 @@ swiftc -parse-as-library \
 
 if [[ "${BUNDLE_MODEL}" -eq 1 ]]; then
   mkdir -p "${RESOURCES_DIR}/Models"
-  DEFAULT_MODEL_NAME="qwen2.5-1.5b-instruct-q4_k_m.gguf"
-  DEFAULT_MODEL_URL="https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/${DEFAULT_MODEL_NAME}?download=true"
+  DEFAULT_MODEL_NAME="HY-MT1.5-1.8B-Q4_K_M.gguf"
+  DEFAULT_MODEL_URL="https://huggingface.co/tencent/HY-MT1.5-1.8B-GGUF/resolve/main/${DEFAULT_MODEL_NAME}?download=true"
 
   if [[ -n "${CUSTOM_MODEL_FILE}" ]]; then
     if [[ ! -f "${CUSTOM_MODEL_FILE}" ]]; then
@@ -104,7 +104,7 @@ if [[ "${BUNDLE_MODEL}" -eq 1 ]]; then
       echo "Copying cached ${DEFAULT_MODEL_NAME} into app resources..."
       cp "${CACHED_MODEL}" "${RESOURCES_DIR}/Models/${DEFAULT_MODEL_NAME}"
     else
-      echo "Downloading ${DEFAULT_MODEL_NAME} (~986 MB) into app bundle..."
+      echo "Downloading ${DEFAULT_MODEL_NAME} (~1.1 GB) into app bundle..."
       curl -fL --progress-bar "${DEFAULT_MODEL_URL}" -o "${RESOURCES_DIR}/Models/${DEFAULT_MODEL_NAME}"
     fi
   fi
