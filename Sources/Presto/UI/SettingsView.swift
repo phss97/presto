@@ -9,6 +9,11 @@ public struct SettingsView: View {
 
     public init() {}
 
+    /// Shown in the settings header; "swift run" has no bundle, so keep a fallback.
+    private static var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1"
+    }
+
     public var body: some View {
         Form {
             Section {
@@ -18,7 +23,7 @@ public struct SettingsView: View {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text("Presto")
                                 .font(.system(size: 16, weight: .semibold))
-                            Text("1.0")
+                            Text(Self.appVersion)
                                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                                 .foregroundStyle(.tertiary)
                         }
