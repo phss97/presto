@@ -130,26 +130,18 @@ public struct PrestoBubbleShape: Shape {
 /// Full-color macOS Liquid Glass app icon view used both to generate `AppIcon.icns` and as an in-app badge.
 public struct PrestoAppIconView: View {
     public let size: CGFloat
-    public let includeMacOSCanvasPadding: Bool
+    /// `true` for the `.icns`: square, opaque corners, no mask, letting macOS 26 draw its own squircle.
+    public let fullBleed: Bool
 
-    public init(size: CGFloat = 64, includeMacOSCanvasPadding: Bool = false) {
+    public init(size: CGFloat = 64, fullBleed: Bool = false) {
         self.size = size
-        self.includeMacOSCanvasPadding = includeMacOSCanvasPadding
+        self.fullBleed = fullBleed
     }
 
     public var body: some View {
-        let bodySize = includeMacOSCanvasPadding ? (size * 824.0 / 1024.0) : size
-        let cornerRadius = bodySize * 0.225
-
         ZStack {
-            squircleBody(bodySize: bodySize, cornerRadius: cornerRadius)
-                .frame(width: bodySize, height: bodySize)
-                .shadow(
-                    color: .black.opacity(includeMacOSCanvasPadding ? 0.30 : 0.18),
-                    radius: includeMacOSCanvasPadding ? size * 0.014 : size * 0.04,
-                    x: 0,
-                    y: includeMacOSCanvasPadding ? size * 0.010 : size * 0.02
-                )
+            squircleBody(bodySize: size, cornerRadius: fullBleed ? 0 : size * 0.225)
+                .frame(width: size, height: size)
         }
         .frame(width: size, height: size)
     }
@@ -246,11 +238,13 @@ public struct PrestoAppIconView: View {
                             )
                     }
 
-                Text("A")
-                    .font(.system(size: bodySize * 0.205, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.96))
-                    .shadow(color: Color.black.opacity(0.16), radius: bodySize * 0.008, x: 0, y: bodySize * 0.004)
-                    .offset(x: -bodySize * 0.045, y: -bodySize * 0.042)
+                if bodySize >= 32 {
+                    Text("A")
+                        .font(.system(size: bodySize * 0.205, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.96))
+                        .shadow(color: Color.black.opacity(0.16), radius: bodySize * 0.008, x: 0, y: bodySize * 0.004)
+                        .offset(x: -bodySize * 0.045, y: -bodySize * 0.042)
+                }
             }
             .frame(width: backW, height: backH)
             .shadow(color: Color(red: 0.02, green: 0.08, blue: 0.28).opacity(0.22), radius: bodySize * 0.022, x: 0, y: bodySize * 0.012)

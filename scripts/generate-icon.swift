@@ -46,10 +46,7 @@ enum IconGeneratorMain {
 
         for spec in specs {
             let pixels = spec.points * spec.scale
-            let iconView = PrestoAppIconView(
-                size: CGFloat(pixels),
-                includeMacOSCanvasPadding: true
-            )
+            let iconView = PrestoAppIconView(size: CGFloat(pixels), fullBleed: true)
             try renderPNG(
                 view: iconView,
                 pointSize: spec.points,
@@ -59,27 +56,16 @@ enum IconGeneratorMain {
         }
 
         try fm.createDirectory(at: outputICNS.deletingLastPathComponent(), withIntermediateDirectories: true)
-        guard let destination = CGImageDestinationCreateWithURL(
-            outputICNS as CFURL,
-            "com.apple.icns" as CFString,
-            specs.count,
-            nil
-        ) else {
-            throw NSError(domain: "IconGen", code: 3, userInfo: [NSLocalizedDescriptionKey: "Could not create ICNS destination"])
-        }
 
-        for spec in specs {
-            let fileURL = tempIconset.appendingPathComponent(spec.name)
-            guard let source = CGImageSourceCreateWithURL(fileURL as CFURL, nil),
-                  let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-                throw NSError(domain: "IconGen", code: 4, userInfo: [NSLocalizedDescriptionKey: "Failed reading \(spec.name)"])
-            }
-            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil)
-            CGImageDestinationAddImage(destination, image, properties)
-        }
-
-        guard CGImageDestinationFinalize(destination) else {
-            throw NSError(domain: "IconGen", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed finalizing \(outputICNS.path)"])
+        // iconutil maps each iconset filename to its own slot; CGImageDestination inferred slots
+        // from pixel size and wrote duplicate entries for 16pt@2x and 32pt@1x.
+        let iconutil = Process()
+        iconutil.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
+        iconutil.arguments = ["-c", "icns", tempIconset.path, "-o", outputICNS.path]
+        try iconutil.run()
+        iconutil.waitUntilExit()
+        guard iconutil.terminationStatus == 0 else {
+            throw NSError(domain: "IconGen", code: 5, userInfo: [NSLocalizedDescriptionKey: "iconutil failed while building \(outputICNS.path)"])
         }
 
         if let previewDir {
@@ -102,7 +88,7 @@ private struct IconSystemShowcaseView: View {
         VStack(spacing: 28) {
             HStack(spacing: 36) {
                 VStack(spacing: 10) {
-                    PrestoAppIconView(size: 220, includeMacOSCanvasPadding: true)
+                    PrestoAppIconView(size: 220)
                     Text("App Icon (macOS Squircle)")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -154,13 +140,13 @@ private struct IconSystemShowcaseView: View {
                                 .foregroundStyle(.secondary)
                         }
                         VStack(spacing: 4) {
-                            PrestoAppIconView(size: 48, includeMacOSCanvasPadding: false)
+                            PrestoAppIconView(size: 48)
                             Text("Settings 48pt")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
                         VStack(spacing: 4) {
-                            PrestoAppIconView(size: 22, includeMacOSCanvasPadding: false)
+                            PrestoAppIconView(size: 22)
                             Text("Popover 22pt")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
